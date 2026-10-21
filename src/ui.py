@@ -22,6 +22,79 @@ class MplCanvas(FigureCanvas):
         self.axes = self.fig.add_subplot(111)
         super().__init__(self.fig)
 
+        self.current_plot_data = None
+        self._pan_active = False
+        self._pan_start_x = None
+        self._pan_start_y = None
+
+        self.mpl_connect("scroll_event", self.on_scroll)
+        self.mpl_connect("button_press_event", self.on_press)
+        self.mpl_connect("button_release_event", self.on_release)
+        self.mpl_connect("motion_notify_event", self.on_motion)
+        self.mpl_connect("axes_leave_event", self.on_leave)
+
+    def on_scroll(self, event):
+        if event.inaxes != self.axes:
+            return
+
+        base_scale = 1.25
+        scale_factor = 1 / base_scale if event.button == 'up' else base_scale
+
+        cur_xlim = self.axes.get_xlim()
+        cur_ylim = self.axes.get_ylim()
+        xdata, ydata = event.xdata, event.ydata
+
+        new_xlim = [
+            xdata - (xdata - cur_xlim[0]) * scale_factor,
+            xdata + (cur_xlim[1] - xdata) * scale_factor
+        ]
+        new_ylim = [
+            ydata - (ydata - cur_ylim[0]) * scale_factor,
+            ydata + (cur_ylim[1] - ydata) * scale_factor
+        ]
+
+        self.axes.set_xlim(new_xlim)
+        self.axes.set_ylim(new_ylim)
+        IntegralPlotter.update_dynamic_view(self)
+        IntegralPlotter.update_crosshair(self, xdata, ydata)
+
+    def on_press(self, event):
+        if event.inaxes != self.axes:
+            return
+        if event.button == 1:
+            self._pan_active = True
+            self._pan_start_x = event.xdata
+            self._pan_start_y = event.ydata
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+
+    def on_release(self, event):
+        if event.button == 1:
+            self._pan_active = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+
+    def on_leave(self, event):
+        """Hides the crosshair when the cursor leaves the graph axes."""
+        IntegralPlotter.update_crosshair(self, None, None)
+
+    def on_motion(self, event):
+        if event.inaxes != self.axes or event.xdata is None or event.ydata is None:
+            IntegralPlotter.update_crosshair(self, None, None)
+            return
+
+        if self._pan_active:
+            dx = event.xdata - self._pan_start_x
+            dy = event.ydata - self._pan_start_y
+
+            cur_xlim = self.axes.get_xlim()
+            cur_ylim = self.axes.get_ylim()
+
+            self.axes.set_xlim([cur_xlim[0] - dx, cur_xlim[1] - dx])
+            self.axes.set_ylim([cur_ylim[0] - dy, cur_ylim[1] - dy])
+            IntegralPlotter.update_dynamic_view(self)
+
+        # Update live crosshair & curve-snapping dot
+        IntegralPlotter.update_crosshair(self, event.xdata, event.ydata)
+
 
 class IntegralSolveWindow(QMainWindow):
     def __init__(self):
@@ -91,7 +164,7 @@ class IntegralSolveWindow(QMainWindow):
         input_group.setLayout(input_layout)
         left_layout.addWidget(input_group)
 
-        # --- MATH KEYPAD (Wolfram Style Buttons) ---
+        # --- MATH KEYPAD ---
         keypad_group = QGroupBox("Math Keypad (Click to insert)")
         keypad_layout = QGridLayout()
 
@@ -134,9 +207,25 @@ class IntegralSolveWindow(QMainWindow):
 
         splitter.addWidget(left_container)
 
-        # --- RIGHT PANEL: Graph ---
+        # --- RIGHT PANEL: Interactive Graph ---
         right_container = QWidget()
         right_layout = QVBoxLayout(right_container)
+
+        graph_header = QHBoxLayout()
+        hint_label = QLabel("💡 <b>Hover:</b> Inspect (x, f(x))  |  <b>Wheel:</b> Zoom  |  <b>Drag:</b> Pan")
+        hint_label.setStyleSheet("color: #64748b; font-size: 11px;")
+        graph_header.addWidget(hint_label)
+
+        graph_header.addStretch()
+
+        self.btn_reset_view = QPushButton("Reset View")
+        self.btn_reset_view.setStyleSheet(
+            "background-color: #475569; color: white; padding: 4px 10px; font-weight: bold;")
+        self.btn_reset_view.clicked.connect(self.solve_integral)
+        graph_header.addWidget(self.btn_reset_view)
+
+        right_layout.addLayout(graph_header)
+
         self.canvas = MplCanvas(self, width=6, height=5, dpi=100)
         right_layout.addWidget(self.canvas)
 
@@ -152,7 +241,6 @@ class IntegralSolveWindow(QMainWindow):
         self.input_expr.setFocus()
 
     def format_for_sympy(self, text):
-        """Convertit les symboles de l'interface en syntaxe compréhensible par SymPy."""
         python_code = text.replace("²", "**2").replace("³", "**3")
         python_code = python_code.replace("^", "**")
         python_code = python_code.replace("√", "sqrt")
