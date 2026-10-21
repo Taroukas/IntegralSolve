@@ -1,4 +1,4 @@
- "# IntegralSolve ∫
+echo "# IntegralSolve ∫
 
 <div align="center">
 
