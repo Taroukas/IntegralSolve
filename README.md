@@ -15,7 +15,7 @@
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 * **Hybrid Mathematical Engine (`src/engine.py`):**
   * **Indefinite Integrals (Primitives):** Derives exact closed-form analytical antiderivatives ($F(x) + C$) using Risch integration algorithms and special functions via `SymPy`.
@@ -31,7 +31,7 @@
 
 ---
 
-## 🗂️ Project Architecture
+##  Project Architecture
 
 The application follows a strict separation of concerns, dividing mathematical computation, visualization, and user interface logic into dedicated modules:
 
@@ -49,7 +49,7 @@ IntegralSolve/
 
 ---
 
-## ⚙️ Installation Guide
+##  Installation Guide
 
 Follow these steps to set up and run **IntegralSolve** locally on your machine.
 
@@ -89,7 +89,7 @@ python main.py
 
 ---
 
-## 🖥️ Usage Guide
+##  Usage Guide
 
 1. **Enter an Integrand:** Type your function directly into the **Integrand $f(x)$** field or use the **Math Keypad** to insert powers (`x²`, `xʸ`), roots (`√x`), constants (`π`), and functions (`exp(`, `sin(`, `ln(`).
 2. **Select Integration Mode:**
@@ -99,7 +99,7 @@ python main.py
 
 ---
 
-## 🧮 Supported Mathematical Syntax
+##  Supported Mathematical Syntax
 
 Thanks to the built-in parser in `src/ui.py`, you can mix natural mathematical symbols and standard Python syntax seamlessly:
 
@@ -114,7 +114,7 @@ Thanks to the built-in parser in `src/ui.py`, you can mix natural mathematical s
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions, bug reports, and feature requests are welcome!
 1. Fork the repository.
@@ -124,6 +124,6 @@ Contributions, bug reports, and feature requests are welcome!
 
 ---
 
-## 📄 License
+##  License
 
 This project is open-source and available under the [MIT License](LICENSE).
