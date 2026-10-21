@@ -13,7 +13,7 @@
 
 ---
 
-## 🚀 Key Features
+##  Key Features
 
 * **Hybrid Architecture Engine:**
   * **Symbolic Evaluation (`SymPy`):** Attempts exact closed-form analytical derivation using Risch algorithms and special functions.
@@ -24,7 +24,7 @@
 
 ---
 
-## 🛠️ Project Structure
+##  Project Structure
 
 ```text
 IntegralSolve/
