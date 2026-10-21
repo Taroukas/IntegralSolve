@@ -1,4 +1,4 @@
-echo "# IntegralSolve ∫
+ "# IntegralSolve ∫
 
 <div align="center">
 
